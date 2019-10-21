@@ -6,18 +6,22 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+    <link rel="stylesheet" href="./css/eventreg.css">
     <script src="./js/web3.js"></script>
 </head>
 <body>
-    <div id="events-container">
+    <div class="container">
         <h1 id="heading">Events:</h1>
         <p>Add new event to list of your events</p>
         <form id="setEventData">
             <label for="setEventName">Event name:</label>
-            <input id="setEventName" type="text" name="eventName"><br><br>
+            <input id="setEventName" type="text" name="eventName">
             <input type="submit" value="Submit">
         </form>
+        <div id="events-container">
+        </div>
     </div>
+
 <script>
     let contractABI = [
         {
@@ -140,161 +144,233 @@
         }
     ];
 
-    let web3 = new Web3("http://localhost:7545");
-    let contractAddress = '0x3564e0c1aa2e887dafc64e8f1600e26822671308';
-    let eventReg = new web3.eth.Contract(contractABI, contractAddress);
+    // let web3 = new Web3("http://localhost:7545");
+    // let web3 = new Web3("http://ropsten.infura.io/v3/22b6b0d0d23246529de6daf6da8d4467");
+
+    // window.addEventListener('load', async () => {
+    //     // Modern dapp browsers...
+    //     if (window.ethereum) {
+    //
+    //     }
+    //
+    // });
+    // if (window.ethereum) {
+    //     const ethereum = window.ethereum;
+    //     const web3 = new Web3(ethereum);
+    // }
+    // if (typeof Web3 !== "undefined")
+    // {
+    //     let web3 = new Web3(web3.currentProvider);
+    // }
+    // else
+    // {
+    //     // set the provider you want from Web3.providers
+    //     let web3 = new Web3("http://localhost:7545");
+    //     }
+
     let $setEventData = document.getElementById('setEventData');
-    let $registerMemberOnEvent = document.getElementById('registerMemberOnEvent');
-    let $checkMembersRegistration = document.getElementById('checkMembersRegistration');
     let $eventsContainer = document.getElementById('events-container');
-    let accounts = [];
 
+    window.addEventListener('load', async () => {
+        // Modern dapp browsers...
+        if (window.ethereum) {
+            window.web3 = new Web3(ethereum);
+            try {
+                await ethereum.enable();
+                let contractAddress = '0x13ddd54a4Da6647a5668158Dc721BBDE97850Ba5';
+                let accounts= await web3.eth.getAccounts();
+                let option={from: accounts[0] };
+                let eventReg = new web3.eth.Contract(contractABI, contractAddress);
+                // myContract.methods.RegisterInstructor('11','Ali')
+                //     .send(option,function(error,result){
+                //         if (! error)
+                //             console.log(result);
+                //         else
+                //             console.log(error);
+                //     });
+                const getInfoAboutEvents = () => {
+                    eventReg.methods.getInfoAboutEvents().call()
+                        .then(result => {
+                            // let events = JSON.parse(result);
+                            let resultObject = JSON.parse(result);
+                            for (let i=resultObject.length; i--;) {
 
-    web3.eth.getAccounts()
-        .then(_accounts => {
-            accounts = _accounts;
-            console.log(accounts[0], accounts[1]);
-        });
+                                let eventBlock = document.createElement("div");
+                                eventBlock.className = "event-block";
+                                eventBlock.id = resultObject[i].id;
+                                $eventsContainer.appendChild(eventBlock);
 
-    const getInfoAboutEvents = () => {
-        eventReg.methods.getInfoAboutEvents().call()
-            .then(result => {
-                // let events = JSON.parse(result);
-                let resultObject = JSON.parse(result);
-                for (let i=resultObject.length; i--;) {
+                                let eventDesc = document.createElement("h3");
+                                eventDesc.innerHTML = resultObject[i].desc;
+                                eventBlock.appendChild(eventDesc);
 
-                    let eventBlock = document.createElement("div");
-                    eventBlock.className = "event-block";
-                    eventBlock.id = resultObject[i].id;
-                    $eventsContainer.appendChild(eventBlock);
+                                let registrationForm = document.createElement("form");
+                                registrationForm.className = "registerMemberOnEvent";
+                                registrationForm.id = resultObject[i].id;
+                                let registerPersonHeading = document.createElement('p');
+                                registerPersonHeading.innerHTML = "Register person on event";
+                                registrationForm.appendChild(registerPersonHeading);
 
-                    let eventDesc = document.createElement("h3");
-                    eventDesc.innerHTML = resultObject[i].desc;
-                    eventBlock.appendChild(eventDesc);
+                                let registrationFormLabel = document.createElement('label');
+                                registrationFormLabel.for = "PassportNumberForReg"+resultObject[i].id;
+                                registrationFormLabel.innerHTML = "Passport number:";
+                                registrationForm.appendChild(registrationFormLabel);
 
-                    let registrationForm = document.createElement("form");
-                    registrationForm.className = "registerMemberOnEvent";
-                    registrationForm.id = resultObject[i].id;
-                        let registerPersonHeading = document.createElement('p');
-                        registerPersonHeading.innerHTML = "Register person on event";
-                        registrationForm.appendChild(registerPersonHeading);
+                                let registrationFormInput = document.createElement('input');
+                                registrationFormInput.id = resultObject[i].id;
+                                registrationFormInput.className = "PassportNumberForReg";
+                                registrationFormInput.type = "text";
+                                registrationFormInput.name = "Passport";
+                                registrationFormInput.placeholder = '4200-000000';
+                                registrationForm.appendChild(registrationFormInput);
 
-                        let registrationFormLabel = document.createElement('label');
-                        registrationFormLabel.for = "PassportNumberForReg"+resultObject[i].id;
-                        registrationFormLabel.innerHTML = "Passport number:";
-                        registrationForm.appendChild(registrationFormLabel);
+                                let registrationFormSubmit = document.createElement('input');
+                                registrationFormSubmit.type = "submit";
+                                registrationFormSubmit.value = "Register";
+                                registrationForm.appendChild(registrationFormSubmit);
 
-                        let registrationFormInput = document.createElement('input');
-                        registrationFormInput.id = resultObject[i].id;
-                        registrationFormInput.className = "PassportNumberForReg";
-                        registrationFormInput.type = "text";
-                        registrationFormInput.name = "Passport";
-                        registrationForm.appendChild(registrationFormInput);
+                                let registrationFormInputMessage = document.createElement('span');
+                                registrationFormInputMessage.className = "registerMemberOnEventMessage";
+                                registrationFormInputMessage.id = resultObject[i].id;
+                                registrationForm.appendChild(registrationFormInputMessage);
 
-                        let registrationFormSubmit = document.createElement('input');
-                        registrationFormSubmit.type = "submit";
-                        registrationFormSubmit.value = "Register person";
-                        registrationForm.appendChild(registrationFormSubmit);
+                                eventBlock.appendChild(registrationForm);
 
-                        let registrationFormInputMessage = document.createElement('span');
-                        registrationFormInputMessage.className = "registerMemberOnEventMessage";
-                        registrationFormInputMessage.id = resultObject[i].id;
-                        registrationForm.appendChild(registrationFormInputMessage);
+                                let checkPersonsRegistrationForm = document.createElement("form");
+                                checkPersonsRegistrationForm.className = "checkMembersRegistration";
+                                checkPersonsRegistrationForm.id = resultObject[i].id;
+                                let checkPersonsRegistrationHeading = document.createElement('p');
+                                checkPersonsRegistrationHeading.innerHTML = "Check person's registration on event";
+                                checkPersonsRegistrationForm.appendChild(checkPersonsRegistrationHeading);
 
-                    eventBlock.appendChild(registrationForm);
+                                let checkPersonsRegistrationFormLabel = document.createElement('label');
+                                checkPersonsRegistrationFormLabel.for = "PassportNumberForCheck"+resultObject[i].id;
+                                checkPersonsRegistrationFormLabel.innerHTML = "Passport number:";
+                                checkPersonsRegistrationForm.appendChild(checkPersonsRegistrationFormLabel);
 
-                    let checkPersonsRegistrationForm = document.createElement("form");
-                    checkPersonsRegistrationForm.className = "checkMembersRegistration";
-                    checkPersonsRegistrationForm.id = resultObject[i].id;
-                        let checkPersonsRegistrationHeading = document.createElement('p');
-                        checkPersonsRegistrationHeading.innerHTML = "Check person's registration on event";
-                        checkPersonsRegistrationForm.appendChild(checkPersonsRegistrationHeading);
+                                let checkPersonsRegistrationFormInput = document.createElement('input');
+                                checkPersonsRegistrationFormInput.className = "PassportNumberForCheck";
+                                checkPersonsRegistrationFormInput.id = resultObject[i].id;
+                                checkPersonsRegistrationFormInput.type = "text";
+                                checkPersonsRegistrationFormInput.name = "Passport";
+                                checkPersonsRegistrationFormInput.placeholder = '4200-000000';
+                                checkPersonsRegistrationForm.appendChild(checkPersonsRegistrationFormInput);
 
-                        let checkPersonsRegistrationFormLabel = document.createElement('label');
-                        checkPersonsRegistrationFormLabel.for = "PassportNumberForCheck"+resultObject[i].id;
-                        checkPersonsRegistrationFormLabel.innerHTML = "Passport number:";
-                        checkPersonsRegistrationForm.appendChild(checkPersonsRegistrationFormLabel);
+                                let checkPersonsRegistrationFormSubmit = document.createElement('input');
+                                checkPersonsRegistrationFormSubmit.type = "submit";
+                                checkPersonsRegistrationFormSubmit.value = "Check";
+                                checkPersonsRegistrationForm.appendChild(checkPersonsRegistrationFormSubmit);
 
-                        let checkPersonsRegistrationFormInput = document.createElement('input');
-                        checkPersonsRegistrationFormInput.className = "PassportNumberForCheck";
-                        checkPersonsRegistrationFormInput.id = resultObject[i].id;
-                        checkPersonsRegistrationFormInput.type = "text";
-                        checkPersonsRegistrationFormInput.name = "Passport";
-                        checkPersonsRegistrationForm.appendChild(checkPersonsRegistrationFormInput);
+                                let checkPersonsRegistrationFormInputMessage = document.createElement('span');
+                                checkPersonsRegistrationFormInputMessage.className = "checkMembersRegistrationMessage";
+                                checkPersonsRegistrationFormInputMessage.id = resultObject[i].id;
+                                checkPersonsRegistrationForm.appendChild(checkPersonsRegistrationFormInputMessage);
 
-                        let checkPersonsRegistrationFormSubmit = document.createElement('input');
-                        checkPersonsRegistrationFormSubmit.type = "submit";
-                        checkPersonsRegistrationFormSubmit.value = "Check person's registration";
-                        checkPersonsRegistrationForm.appendChild(checkPersonsRegistrationFormSubmit);
+                                eventBlock.appendChild(checkPersonsRegistrationForm);
+                            }
 
-                        let checkPersonsRegistrationFormInputMessage = document.createElement('span');
-                        checkPersonsRegistrationFormInputMessage.className = "checkMembersRegistrationMessage";
-                        checkPersonsRegistrationFormInputMessage.id = resultObject[i].id;
-                        checkPersonsRegistrationForm.appendChild(checkPersonsRegistrationFormInputMessage);
-
-                    eventBlock.appendChild(checkPersonsRegistrationForm);
-                }
-
-                let checkMembersRegistrationForms = document.getElementsByClassName('checkMembersRegistration');
-                for (let form of checkMembersRegistrationForms) {
-                    form.addEventListener("submit", e => {
-                        e.preventDefault();
-                        let message = '';
-                            const passportNumber = e.target.elements[0].value;
-                            e.target.elements[0].value = '';
-                            eventReg.methods
-                                .checkMember(form.id, passportNumber)
-                                .send({from: accounts[0]})
-                                .then(result => {
-                                    if (result.events.IsRegistered.returnValues['0']===true) {
-                                        message = `Member with passport ${passportNumber} is registered on this event`;
-                                    } else
-                                        message = `Member with passport ${passportNumber} hasn't registered yet`;
+                            let checkMembersRegistrationForms = document.getElementsByClassName('checkMembersRegistration');
+                            for (let form of checkMembersRegistrationForms) {
+                                form.addEventListener("submit", e => {
+                                    e.preventDefault();
+                                    let message = '';
+                                    const passportNumber = e.target.elements[0].value;
+                                    e.target.elements[0].value = '';
                                     document.getElementsByClassName('checkMembersRegistrationMessage')
-                                        .namedItem(form.id.toString()).innerHTML = message;
-                                    console.log(result.events.IsRegistered.returnValues['0']);
-                                }, error => {
-                                    document.getElementsByClassName('checkMembersRegistrationMessage')
-                                        .namedItem(form.id.toString()).innerHTML = `Some error happened`;
+                                        .namedItem(form.id.toString()).innerHTML = 'Connecting to smart contract. Please wait';
+                                    eventReg.methods
+                                        .checkMember(form.id, passportNumber)
+                                        .send({from: accounts[0]})
+                                        .then(result => {
+                                            if (result.events.IsRegistered.returnValues['0']===true) {
+                                                message = `Member with passport ${passportNumber} is registered on this event`;
+                                            } else
+                                                message = `Member with passport ${passportNumber} hasn't registered yet`;
+                                            document.getElementsByClassName('checkMembersRegistrationMessage')
+                                                .namedItem(form.id.toString()).innerHTML = message;
+                                            console.log(result.events.IsRegistered.returnValues['0']);
+                                        }, error => {
+                                            document.getElementsByClassName('checkMembersRegistrationMessage')
+                                                .namedItem(form.id.toString()).innerHTML = `Some error happened`;
+                                        });
                                 });
-                    });
-                }
+                            }
 
-                let membersRegistrationForms = document.getElementsByClassName('registerMemberOnEvent');
-                for (let form of membersRegistrationForms) {
-                    form.addEventListener('submit', e => {
-                        e.preventDefault();
-                        const passportNumber = e.target.elements[0].value;
-                        e.target.elements[0].value = '';
-                        eventReg.methods
-                            .eventRegistration(form.id, passportNumber)
-                            .send({from: accounts[0]})
-                            .then(result => {
-                                document.getElementsByClassName('registerMemberOnEventMessage')
-                                    .namedItem(form.id.toString()).innerHTML =
-                                    result.events.registrationStatus.returnValues['0'];
-                                console.log(result.events.registrationStatus);
-                            }, error => {
-                                document.getElementsByClassName('registerMemberOnEventMessage')
-                                    .namedItem(form.id.toString()).innerHTML =
-                                    `Member with passport ${passportNumber} has got an registration error`;
-                            });
+                            let membersRegistrationForms = document.getElementsByClassName('registerMemberOnEvent');
+                            for (let form of membersRegistrationForms) {
+                                form.addEventListener('submit', e => {
+                                    e.preventDefault();
+                                    const passportNumber = e.target.elements[0].value;
+                                    e.target.elements[0].value = '';
+                                    document.getElementsByClassName('registerMemberOnEventMessage')
+                                        .namedItem(form.id.toString()).innerHTML = 'Connecting to smart contract. Please wait';
+                                    eventReg.methods
+                                        .eventRegistration(form.id, passportNumber)
+                                        .send({from: accounts[0]})
+                                        .then(result => {
+                                            document.getElementsByClassName('registerMemberOnEventMessage')
+                                                .namedItem(form.id.toString()).innerHTML =
+                                                result.events.registrationStatus.returnValues['0'];
+                                            console.log(result.events.registrationStatus);
+                                        }, error => {
+                                            document.getElementsByClassName('registerMemberOnEventMessage')
+                                                .namedItem(form.id.toString()).innerHTML =
+                                                `Member with passport ${passportNumber} has got an registration error`;
+                                        });
 
-                    })
-                }
-            });
-    };
-    getInfoAboutEvents();
+                                })
+                            }
+                        });
+                };
+                getInfoAboutEvents();
 
 
-    $setEventData.addEventListener('submit', e => {
-        // e.preventDefault();
-        const eventDescription = e.target.elements[0].value;
-        eventReg.methods
-            .setEvent(eventDescription)
-            .send({from: accounts[0]})
-            .then(getInfoAboutEvents);
+                $setEventData.addEventListener('submit', e => {
+                    e.preventDefault();
+                    const eventDescription = e.target.elements[0].value;
+                    eventReg.methods
+                        .setEvent(eventDescription)
+                        .send({from: accounts[0]})
+                        .then(() => {
+                            $eventsContainer.innerHTML = "";
+                            getInfoAboutEvents();
+                        });
+                });
+            } catch (error) {
+                // User denied account access...
+            }
+        }
+        // Legacy dapp browsers...
+        else if (window.web3) {
+            window.web3 = new Web3(web3.currentProvider);
+            // Acccounts always exposed
+            web3.eth.sendTransaction({/* ... */});
+        }
+        // Non-dapp browsers...
+        else {
+            document.getElementById("heading").innerHTML = "Non-Ethereum browser detected. You should install MetaMask first!";
+        }
     });
+
+
+    // let web3 = new Web3(Web3.givenProvider);
+    // console.log(web3.version);
+    // let contractAddress = '0x3564e0c1aa2e887dafc64e8f1600e26822671308';
+    // let contractAddress = '0x13ddd54a4Da6647a5668158Dc721BBDE97850Ba5';
+    // let eventReg = new web3.eth.Contract(contractABI, contractAddress);
+    // let $setEventData = document.getElementById('setEventData');
+    // let $registerMemberOnEvent = document.getElementById('registerMemberOnEvent');
+    // let $checkMembersRegistration = document.getElementById('checkMembersRegistration');
+    // let $eventsContainer = document.getElementById('events-container');
+    // let accounts = [];
+
+
+    // web3.eth.getAccounts()
+    //     .then(_accounts => {
+    //         accounts = _accounts;
+    //         console.log(accounts[0], accounts[1]);
+    //     });
+
 
 </script>
 </body>
